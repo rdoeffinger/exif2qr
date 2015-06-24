@@ -35,7 +35,7 @@ case "$TYPE" in
     qrencode -l M -m 2 -o "$OUTFILE" "$STRING"
     ;;
   dm)
-    #echo "$STRING" | dmtxwrite -e b -o "$OUTFILE"
+    #echo "$STRING" | dmtxwrite -e b -d 3 -m 3 -o "$OUTFILE"
     iec16022 -f PNG -c "$STRING" -o "$OUTFILE"
     mogrify -scale 300% "$OUTFILE"
     ;;
