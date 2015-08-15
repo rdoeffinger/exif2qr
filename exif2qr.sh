@@ -11,7 +11,7 @@ parse_coord()
     eval "$1=\${COORD}"
     return
   fi
-  COORD_BC=$(echo "scale = 9; $COORD + $COORD_MIN / 60 + $COORD_SEC / 3600" | bc)
+  COORD_BC=$(echo "scale = 7; $COORD + $COORD_MIN / 60 + $COORD_SEC / 3600" | bc)
   if ! test "${COORD_BC%%.*}" -eq "${COORD%%.*}" ; then
     echo "Failed to calculate GPS coordinates with bc"
     exit 1
