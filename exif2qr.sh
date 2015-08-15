@@ -1,22 +1,45 @@
 #!/bin/sh
+
+parse_coord()
+{
+  COORD_FULL="$2"
+  COORD=${COORD_FULL%%,*}
+  COORD_MIN=${COORD_FULL#*,}
+  COORD_MIN=${COORD_MIN%%,*}
+  COORD_SEC=${COORD_FULL##*,}
+  if test "$COORD_MIN" -eq 0 -a "$COORD_SEC" -eq 0 2>/dev/null ; then
+    eval "$1=\${COORD}"
+    return
+  fi
+  COORD_BC=$(echo "scale = 9; $COORD + $COORD_MIN / 60 + $COORD_SEC / 3600" | bc)
+  if ! test "${COORD_BC%%.*}" -eq "${COORD%%.*}" ; then
+    echo "Failed to calculate GPS coordinates with bc"
+    exit 1
+  fi
+  eval "$1=\${COORD_BC}"
+}
+
 FILE=$1
 TYPE=${2:-qr}
 OUTFILE=${FILE%.*}.gps$TYPE.png
-GPSNR=$(exif "$FILE" -m -t GPSLatitudeRef 2>/dev/null)
-GPSN=$(exif "$FILE" -m -t GPSLatitude 2>/dev/null)
-GPSN=${GPSN%%,*}
+GPSNR=$(exif "$FILE" -m --ifd=GPS -t GPSLatitudeRef 2>/dev/null)
+GPSN_FULL=$(exif "$FILE" -m --ifd=GPS -t GPSLatitude 2>/dev/null)
+parse_coord GPSN "$GPSN_FULL"
 test "$GPSNR" = "S" && GPSN="-$GPSN"
-GPSER=$(exif "$FILE" -m -t GPSLongitudeRef 2>/dev/null)
-GPSE=$(exif "$FILE" -m -t GPSLongitude 2>/dev/null)
-GPSE=${GPSE%%,*}
+GPSER=$(exif "$FILE" -m --ifd=GPS -t GPSLongitudeRef 2>/dev/null)
+GPSE_FULL=$(exif "$FILE" -m --ifd=GPS -t GPSLongitude 2>/dev/null)
+parse_coord GPSE "$GPSE_FULL"
 test "$GPSER" = "W" && GPSE="-$GPSE"
-ALT=$(exif "$FILE" -m -t GPSAltitude 2>/dev/null)
+ALT=$(exif "$FILE" -m --ifd=GPS -t GPSAltitude 2>/dev/null)
 ALT=${ALT%m}
 ALT=${ALT%.*}
-TIME=$(exif "$FILE" -m -t GPSTimeStamp 2>/dev/null)
+TIME=$(exif "$FILE" -m --ifd=GPS -t GPSTimeStamp 2>/dev/null)
 TIME=${TIME%.*}
-DATE=$(exif "$FILE" -m -t GPSDateStamp 2>/dev/null)
+DATE=$(exif "$FILE" -m --ifd=GPS -t GPSDateStamp 2>/dev/null)
 DATETIME=$(exif "$FILE" -m -t DateTime 2>/dev/null)
+if test -z "$DATETIME" ; then
+  DATETIME=$(exif "$FILE" -m -t DateTimeOriginal 2>/dev/null)
+fi
 if test -n "$GPSN" ; then
   STRING="geo:$GPSN,$GPSE"
 # Android maps are broken and do not work with standard geo URLs
