@@ -14,6 +14,7 @@ parse_coord()
   COORD_BC=$(echo "scale = 7; $COORD + $COORD_MIN / 60 + $COORD_SEC / 3600" | bc)
   if ! test "${COORD_BC%%.*}" -eq "${COORD%%.*}" ; then
     echo "Failed to calculate GPS coordinates with bc"
+    echo "Input: $2 ; split: $COORD:$COORD_MIN:$COORD_SEC ; result $COORD_BC"
     exit 1
   fi
   eval "$1=\${COORD_BC}"
@@ -24,11 +25,11 @@ TYPE=${2:-qr}
 OUTFILE=${FILE%.*}.gps$TYPE.png
 GPSNR=$(exif "$FILE" -m --ifd=GPS -t GPSLatitudeRef 2>/dev/null)
 GPSN_FULL=$(exif "$FILE" -m --ifd=GPS -t GPSLatitude 2>/dev/null)
-parse_coord GPSN "$GPSN_FULL"
+test -n "$GPSN_FULL" && parse_coord GPSN "$GPSN_FULL"
 test "$GPSNR" = "S" && GPSN="-$GPSN"
 GPSER=$(exif "$FILE" -m --ifd=GPS -t GPSLongitudeRef 2>/dev/null)
 GPSE_FULL=$(exif "$FILE" -m --ifd=GPS -t GPSLongitude 2>/dev/null)
-parse_coord GPSE "$GPSE_FULL"
+test -n "$GPSE_FULL" && parse_coord GPSE "$GPSE_FULL"
 test "$GPSER" = "W" && GPSE="-$GPSE"
 ALT=$(exif "$FILE" -m --ifd=GPS -t GPSAltitude 2>/dev/null)
 ALT=${ALT%m}
