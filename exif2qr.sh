@@ -41,6 +41,8 @@ DATETIME=$(exif "$FILE" -m -t DateTime 2>/dev/null)
 if test -z "$DATETIME" ; then
   DATETIME=$(exif "$FILE" -m -t DateTimeOriginal 2>/dev/null)
 fi
+test -z "$DATE" && DATE="${DATETIME%% *}"
+test -z "$TIME" && TIME="${DATETIME##* }"
 if test -n "$GPSN" ; then
   STRING="geo:$GPSN,$GPSE"
 # Android maps are broken and do not work with standard geo URLs
