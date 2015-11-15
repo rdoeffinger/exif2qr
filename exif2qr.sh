@@ -53,6 +53,7 @@ elif test -n "$DATETIME" ; then
   OUTFILE=${FILE%.*}.time$TYPE.png
   STRING="$DATETIME"
 else
+  echo "Could not find any exif information or 'exif' binary not found!"
   exit 1
 fi
 
