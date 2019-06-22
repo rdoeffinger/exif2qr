@@ -43,6 +43,8 @@ if test -z "$DATETIME" ; then
 fi
 test -z "$DATE" && DATE="${DATETIME%% *}"
 test -z "$TIME" && TIME="${DATETIME##* }"
+DATE=$(echo "$DATE" | tr : -)
+DATETIME=$(echo "$DATETIME" | sed -e 's/\([0-9]*\):\([0-9]*\):\([0-9]*\) /\1-\2-\3 /')
 if test -n "$GPSN" ; then
   STRING="geo:$GPSN,$GPSE"
 # Android maps are broken and do not work with standard geo URLs
@@ -72,3 +74,4 @@ case "$TYPE" in
   *)
     echo "Unknown target format"
 esac
+touch -c -d "$DATETIME" "$OUTFILE"
